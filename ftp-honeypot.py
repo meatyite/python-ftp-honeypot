@@ -2,11 +2,12 @@
 
 import socket
 from thread import start_new_thread
+from datetime import datetime
 
 users = {}
 HOST = ''
 PORT = 42069
-
+log_file = open('log.log', 'a+')
 def init_user_conf():
 	f = open('users.conf', 'r')
 	user_conf_lines = f.read().split('\n')
@@ -17,6 +18,10 @@ def init_user_conf():
 			password = split_line[1]
 			users[username] = password
 
+
+def log_message(msg):
+	print msg
+	log_file.write(msg + '\n')
 
 
 def init_server_conf():
@@ -40,6 +45,7 @@ def clientThread(conn, connip):
 	isLoggedIn = False
 	isRecivingPassword = False
 	user_to_login = ""
+	log_msg = ""
 	while True:
 		conn_data = conn.recv(1024)
 		if isLoggedIn == False and conn_data.startswith('USER'):
@@ -54,15 +60,37 @@ def clientThread(conn, connip):
 			if conn_data.startswith('PASS'):
 				user_to_login = user_to_login.replace('\n', '').replace('\r', '')
 				password = conn_data[5:].replace('\n', '').replace('\r', '')
-				if users[user_to_login] == password:
-					conn.sendall('230 Login successful.\n')
-					print('Login from IP: ' + connip + ' with username:' + user_to_login + " and password:" + password + " SUCCESSFUL.\n")
+				if user_to_login in users.keys() and not(user_to_login == '*'):
+					if users[user_to_login] == password:
+						conn.sendall('230 Login successful.\n')
+						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + " and password:" + password + " SUCCESSFUL."
+					elif users[user_to_login] == '*':
+						conn.sendall('230 Login successful.\n')
+						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + " and password:" + password + " SUCCESSFUL."
+					else:
+						conn.sendall('530 Incorrect Login.\n')
+						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + ' and password:' + password + ' FAILED.'
+				elif '*' in users.keys():
+					if users['*'] == password:
+						conn.sendall('230 Login successful.\n')
+						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + " and password:" + password + " SUCCESSFUL."
+					else:
+						conn.sendall('530 Incorrect Login.\n')
+						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + ' and password:' + password + ' FAILED.'
 				else:
+					log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + ' and password:' + password + ' FAILED.'
 					conn.sendall('530 Incorrect Login.\n')
-					print('Login from IP: ' + connip + ' with username:' + user_to_login + ' and password:' + password + ' FAILED.\n')
 
+			if not(log_msg == ''):
+				log_message(log_msg)
+			log_msg = ''
 			isRecivingPassword = False
+
+
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
 
 def init_ftp_server():
 	s.bind((HOST, PORT))
@@ -77,8 +105,14 @@ def init_ftp_server():
 
 
 
+def getDateTime():
+	now = datetime.now()
+	currentDateTime = str(now.day) + "/" + str(now.month) + "/" + str(now.year)
+	return currentDateTime
+
 
 if __name__ == '__main__':
+	log_file.write('Starting logging, Date (DD/MM/YY): ' + getDateTime() + "\n")
 	print "configuring server settings..."
 	try:
 		init_server_conf()
