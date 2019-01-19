@@ -56,7 +56,6 @@ def clientThread(conn, connip):
 			if conn_data.startswith('pwd'):
 				conn.sendall("257 " + '"' + currentDir + '"' + " is the current directory" + '\n')
 		elif isRecivingPassword == True:
-			#print conn_data[5:]
 			if conn_data.startswith('PASS'):
 				user_to_login = user_to_login.replace('\n', '').replace('\r', '')
 				password = conn_data[5:].replace('\n', '').replace('\r', '')
@@ -123,7 +122,6 @@ if __name__ == '__main__':
 		init_user_conf()
 	except Exception as e:
 		print "FAILED: " + str(e)
-	#print str(users)
 	REAL_HOST = HOST
 	if REAL_HOST == '':
 		REAL_HOST = '*'
@@ -132,4 +130,3 @@ if __name__ == '__main__':
 		init_ftp_server()
 	except Exception as e:
 		print "FAILED: " + str(e)
-#	print users['admin']
