@@ -6,7 +6,6 @@ Run mkdir -p /opt/code
 
 COPY ftp-honeypot.py /opt/code/ftp-honeypot.py
 COPY server.conf /opt/code/server.conf
-COPY server.conf /opt/code/server.conf
 COPY users.conf /opt/code/users.conf
 COPY log.log /opt/logs/log.log
 
