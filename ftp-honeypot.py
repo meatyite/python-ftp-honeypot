@@ -1,13 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import socket
-from thread import start_new_thread
+from threading import Thread
 from datetime import datetime
 
 users = {}
 HOST = ''
 PORT = 42069
-log_file = open('log.log', 'a+')
+
 def init_user_conf():
 	f = open('users.conf', 'r')
 	user_conf_lines = f.read().split('\n')
@@ -18,10 +18,6 @@ def init_user_conf():
 			password = split_line[1]
 			users[username] = password
 
-
-def log_message(msg):
-	print msg
-	log_file.write(msg + '\n')
 
 
 def init_server_conf():
@@ -81,7 +77,7 @@ def clientThread(conn, connip):
 					conn.sendall('530 Incorrect Login.\n')
 
 			if not(log_msg == ''):
-				log_message(log_msg)
+				print(log_msg)
 			log_msg = ''
 			isRecivingPassword = False
 
@@ -95,13 +91,12 @@ def init_ftp_server():
 	s.bind((HOST, PORT))
 
 	s.listen(50)
-	print "FTP Honeypot running."
+	print("FTP Honeypot running.")
 	while 1:
 		conn, addr = s.accept()
-		print "client logged in from IP:" + str(addr[0]) + ":" + str(addr[1])
+		print("client logged in from IP:" + str(addr[0]) + ":" + str(addr[1]))
 		conn.sendall("220 (vsFTPd 3.0.3)\n")
-		start_new_thread(clientThread, (conn, str(addr[0]),))
-
+		Thread(target=clientThread, args=(conn, str(addr[0]),).start())
 
 
 def getDateTime():
@@ -111,22 +106,22 @@ def getDateTime():
 
 
 if __name__ == '__main__':
-	log_file.write('Starting logging, Date (DD/MM/YY): ' + getDateTime() + "\n")
-	print "configuring server settings..."
+	print('Starting logging, Date (DD/MM/YY): ' + getDateTime() + "\n")
+	print("configuring server settings...")
 	try:
 		init_server_conf()
 	except Exception as e:
-		print "FAILED: " + str(e)
-	print "configuring FTP users..."
+		print("FAILED: " + str(e))
+	print("configuring FTP users...")
 	try:
 		init_user_conf()
 	except Exception as e:
-		print "FAILED: " + str(e)
+		print("FAILED: " + str(e))
 	REAL_HOST = HOST
 	if REAL_HOST == '':
 		REAL_HOST = '*'
-	print "Starting FTP Honeypot on: " + REAL_HOST + ":" + str(PORT) + "..."
+	print("Starting FTP Honeypot on: " + REAL_HOST + ":" + str(PORT) + "...")
 	try:
 		init_ftp_server()
 	except Exception as e:
-		print "FAILED: " + str(e)
+		print("FAILED: " + str(e))
