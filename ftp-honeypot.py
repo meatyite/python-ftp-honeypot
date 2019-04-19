@@ -43,38 +43,35 @@ def clientThread(conn, connip):
 	user_to_login = ""
 	log_msg = ""
 	while True:
-		conn_data = conn.recv(1024)
+		conn_data = conn.recv(1024).decode()
 		if isLoggedIn == False and conn_data.startswith('USER'):
 			user_to_login = conn_data[5:]
-			conn.sendall('331 Please specify the password.\n')
+			conn.sendall('331 Please specify the password.\n'.encode())
 			isRecivingPassword = True
-		elif isLoggedIn == True:
-			if conn_data.startswith('pwd'):
-				conn.sendall("257 " + '"' + currentDir + '"' + " is the current directory" + '\n')
 		elif isRecivingPassword == True:
 			if conn_data.startswith('PASS'):
 				user_to_login = user_to_login.replace('\n', '').replace('\r', '')
 				password = conn_data[5:].replace('\n', '').replace('\r', '')
 				if user_to_login in users.keys() and not(user_to_login == '*'):
 					if users[user_to_login] == password:
-						conn.sendall('230 Login successful.\n')
+						conn.sendall('230 Login successful.\n'.encode())
 						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + " and password:" + password + " SUCCESSFUL."
 					elif users[user_to_login] == '*':
-						conn.sendall('230 Login successful.\n')
+						conn.sendall('230 Login successful.\n'.encode())
 						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + " and password:" + password + " SUCCESSFUL."
 					else:
-						conn.sendall('530 Incorrect Login.\n')
+						conn.sendall('530 Incorrect Login.\n'.encode())
 						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + ' and password:' + password + ' FAILED.'
 				elif '*' in users.keys():
 					if users['*'] == password:
-						conn.sendall('230 Login successful.\n')
+						conn.sendall('230 Login successful.\n'.encode())
 						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + " and password:" + password + " SUCCESSFUL."
 					else:
-						conn.sendall('530 Incorrect Login.\n')
+						conn.sendall('530 Incorrect Login.\n'.encode())
 						log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + ' and password:' + password + ' FAILED.'
 				else:
 					log_msg = 'Login from IP: ' + connip + ' with username:' + user_to_login + ' and password:' + password + ' FAILED.'
-					conn.sendall('530 Incorrect Login.\n')
+					conn.sendall('530 Incorrect Login.\n'.encode())
 
 			if not(log_msg == ''):
 				print(log_msg)
